@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3D Scanner | Capture Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --primary-light: #4895ef;
+      --secondary-color: #3f37c9;
+      --accent-color: #f72585;
+      --dark-color: #1a1a2e;
+      --light-color: #f8f9ff;
+      --success-color: #4cc9f0;
+      --warning-color: #f8961e;
+    }
+    
+    body {
+      background-color: var(--light-color);
+      font-family: 'Inter', sans-serif;
+      color: var(--dark-color);
+    }
+    
+    .navbar {
+      background: linear-gradient(135deg, var(--dark-color) 0%, var(--secondary-color) 100%);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      padding: 0.8rem 0;
+    }
+    
+    .navbar-brand {
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .navbar-brand i {
+      margin-right: 10px;
+      font-size: 1.3em;
+      color: var(--success-color);
+    }
+    
+    .main-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+    
+    .camera-wrapper {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+      background: #000;
+      margin-bottom: 2rem;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    .camera-wrapper:hover {
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    }
+    
+    .camera-feed {
+      width: 100%;
+      display: block;
+      transition: all 0.3s;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+    }
+    
+    .camera-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.5rem;
+      pointer-events: none;
+    }
+    
+    .camera-controls {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+    
+    .camera-status {
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 0.5rem 1.2rem;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      backdrop-filter: blur(5px);
+    }
+    
+    .camera-status i {
+      margin-right: 8px;
+    }
+    
+    .btn-capture {
+      background: var(--accent-color);
+      border: none;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      font-size: 1.7rem;
+      box-shadow: 0 10px 25px rgba(248, 37, 133, 0.4);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      border: 3px solid white;
+    }
+    
+    .btn-capture::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+      transform: scale(0);
+      transition: transform 0.5s;
+    }
+    
+    .btn-capture:hover {
+      background: #f83a92;
+      transform: scale(1.05);
+      box-shadow: 0 15px 35px rgba(248, 37, 133, 0.5);
+    }
+    
+    .btn-capture:active {
+      transform: scale(0.95);
+    }
+    
+    .btn-capture:active::before {
+      transform: scale(1);
+    }
+    
+    .guide-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      margin-bottom: 2rem;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .guide-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .guide-header i {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1rem;
+      font-size: 1.2rem;
+    }
+    
+    .guide-step {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 1.2rem;
+      padding-bottom: 1.2rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .guide-step:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .step-number {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1rem;
+      flex-shrink: 0;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    .step-content {
+      flex: 1;
+    }
+    
+    .step-title {
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+    
+    .step-desc {
+      color: #666;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      backdrop-filter: blur(5px);
+    }
+    
+    .spinner {
+      width: 70px;
+      height: 70px;
+      border: 5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--accent-color);
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 1.5rem;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    
+    .loading-subtext {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+    }
+    
+    .progress-bar {
+      width: 200px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+    
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: var(--accent-color);
+      transition: width 0.3s;
+    }
+    
+    .camera-title {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .camera-title h2 {
+      font-weight: 700;
+      color: var(--dark-color);
+      margin-bottom: 0.5rem;
+    }
+    
+    .camera-title p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+    
+    .settings-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      backdrop-filter: blur(5px);
+    }
+    
+    .settings-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1100;
+    }
+    
+    @media (max-width: 768px) {
+      .main-container {
+        padding: 0 1rem;
+      }
+      
+      .guide-card {
+        padding: 1.5rem;
+      }
+      
+      .btn-capture {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <i class="fas fa-cube"></i>
+        <span>3D Scanner Pro</span>
+      </a>
+      <div class="d-flex align-items-center">
+        <button class="btn btn-sm btn-outline-light me-2" onclick="showHelp()">
+          <i class="fas fa-question-circle me-1"></i> Help
+        </button>
+        <button class="btn btn-sm btn-outline-light" onclick="window.close()">
+          <i class="fas fa-times me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </nav>
+  
+  <div class="main-container">
+    <div class="row">
+      <div class="col-lg-8 mx-auto">
+        <!-- Guide Card -->
+        <div class="guide-card">
+          <div class="guide-header">
+            <i class="fas fa-graduation-cap"></i>
+            <h4 class="mb-0">Capture Guide</h4>
+          </div>
+          <div class="guide-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <div class="step-title">Position Your Object</div>
+              <div class="step-desc">Place your object centered in the frame with at least 10cm clearance on all sides for best results.</div>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <div class="step-title">Optimize Lighting</div>
+              <div class="step-desc">Ensure even lighting from multiple angles to minimize shadows and reflections.</div>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <div class="step-title">Capture Multiple Angles</div>
+              <div class="step-desc">For full 3D scanning, capture from at least 8 different angles around the object.</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Camera Section -->
+        <div class="camera-title">
+          <h2><i class="fas fa-camera me-2"></i>Live Capture</h2>
+          <p>Adjust your object and lighting before capturing</p>
+        </div>
+        
+        <div class="camera-wrapper">
+          <img src="{{ ip_camera_url }}" alt="Live Camera Feed" class="camera-feed" id="cameraFeed">
+          <div class="camera-overlay">
+            <div class="camera-controls">
+              <button class="settings-btn" onclick="showCameraSettings()" title="Camera Settings">
+                <i class="fas fa-cog"></i>
+              </button>
+              <div class="camera-status">
+                <i class="fas fa-circle text-success"></i>
+                <span>Live Feed Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center my-4">
+          <button class="btn-capture" onclick="captureFrame()" title="Capture Image">
+            <i class="fas fa-camera"></i>
+          </button>
+          <div class="mt-3 text-muted">Click to capture or press <kbd>Space</kbd></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Processing Your Capture</div>
+    <div class="loading-subtext">This usually takes 10-15 seconds</div>
+    <div class="progress-bar">
+      <div class="progress" id="captureProgress"></div>
+    </div>
+  </div>
+  
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+  
+  <!-- Camera Settings Modal -->
+  <div class="modal fade" id="cameraSettingsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-cog me-2"></i>Camera Settings</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Resolution</label>
+            <select class="form-select">
+              <option>High (1920×1080)</option>
+              <option selected>Medium (1280×720)</option>
+              <option>Low (640×480)</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Exposure</label>
+            <input type="range" class="form-range" min="-2" max="2" step="0.1" value="0">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">White Balance</label>
+            <input type="range" class="form-range" min="3000" max="7000" step="100" value="5500">
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="autoFocusSwitch" checked>
+            <label class="form-check-label" for="autoFocusSwitch">Auto Focus</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Help Modal -->
+  <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-question-circle me-2"></i>3D Scanning Help</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="accordion" id="helpAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#helpOne">
+                  Best Practices for 3D Scanning
+                </button>
+              </h2>
+              <div id="helpOne" class="accordion-collapse collapse show" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <ul>
+                    <li>Use a neutral colored background that contrasts with your object</li>
+                    <li>Avoid reflective or transparent surfaces when possible</li>
+                    <li>For small objects, position the camera 30-50cm away</li>
+                    <li>Rotate the object in small increments (15-20°) between captures</li>
+                    <li>Maintain consistent lighting throughout all captures</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpTwo">
+                  Troubleshooting Common Issues
+                </button>
+              </h2>
+              <div id="helpTwo" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                  <p><strong>Blurry images:</strong> Check camera focus and ensure the object isn't moving during capture.</p>
+                  <p><strong>Poor reconstruction:</strong> Try capturing more angles (minimum 8 recommended).</p>
+                  <p><strong>Camera not connecting:</strong> Verify your camera is properly connected and powered on.</p>
+                  <p><strong>Dark images:</strong> Adjust lighting or increase exposure in camera settings.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Capture function with enhanced feedback
+    function captureFrame() {
+      const overlay = document.getElementById('loadingOverlay');
+      const progress = document.getElementById('captureProgress');
+      
+      // Show loading overlay
+      overlay.style.display = 'flex';
+      
+      // Simulate progress (in a real app, this would be based on actual progress)
+      let progressValue = 0;
+      const progressInterval = setInterval(() => {
+        progressValue += Math.random() * 10;
+        if (progressValue >= 100) {
+          progressValue = 100;
+          clearInterval(progressInterval);
+        }
+        progress.style.width = `${progressValue}%`;
+      }, 300);
+      
+      // Make the actual capture request
+      fetch("/capture_photo", { method: "POST" })
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            showToast('Capture Failed', data.error, 'error');
+          } else {
+            showToast('Capture Successful', 'Processing your 3D model...', 'success');
+            setTimeout(() => {
+              window.opener.updateModel(data.plot_html);
+              window.close();
+            }, 1500);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          showToast('Error', 'Failed to capture photo. Please try again.', 'error');
+        })
+        .finally(() => {
+          clearInterval(progressInterval);
+          setTimeout(() => {
+            overlay.style.display = 'none';
+            progress.style.width = '0%';
+          }, 500);
+        });
+    }
+    
+    // Show toast notification
+    function showToast(title, message, type) {
+      const toastContainer = document.getElementById('toastContainer');
+      const toastId = 'toast-' + Date.now();
+      
+      let icon, bgClass;
+      switch(type) {
+        case 'success':
+          icon = 'check-circle';
+          bgClass = 'bg-success';
+          break;
+        case 'error':
+          icon = 'exclamation-circle';
+          bgClass = 'bg-danger';
+          break;
+        default:
+          icon = 'info-circle';
+          bgClass = 'bg-primary';
+      }
+      
+      const toastHTML = `
+        <div id="${toastId}" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="toast-header ${bgClass} text-white">
+            <i class="fas fa-${icon} me-2"></i>
+            <strong class="me-auto">${title}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+          <div class="toast-body">
+            ${message}
+          </div>
+        </div>
+      `;
+      
+      // Add toast to container
+      toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        const toast = document.getElementById(toastId);
+        if (toast) {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 300);
+        }
+      }, 5000);
+    }
+    
+    // Camera feed error handling
+    document.getElementById('cameraFeed').onerror = function() {
+      this.src = 'https://via.placeholder.com/1920x1080/1a1a2e/ffffff?text=Camera+Not+Available';
+      document.querySelector('.camera-status').innerHTML = `
+        <i class="fas fa-circle text-danger"></i>
+        <span>Camera Offline</span>
+      `;
+      showToast('Camera Error', 'Could not connect to camera feed', 'error');
+    };
+    
+    // Keyboard shortcut for capture (Spacebar)
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        captureFrame();
+      }
+    });
+    
+    // Show camera settings modal
+    function showCameraSettings() {
+      const modal = new bootstrap.Modal(document.getElementById('cameraSettingsModal'));
+      modal.show();
+    }
+    
+    // Show help modal
+    function showHelp() {
+      const modal = new bootstrap.Modal(document.getElementById('helpModal'));
+      modal.show();
+    }
+  </script>
+  
+  <!-- Bootstrap JS Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

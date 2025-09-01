@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - STL Models</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Custom Styles -->
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #3f37c9;
+      --accent-color: #4cc9f0;
+      --success-color: #38b000;
+      --warning-color: #ffaa00;
+      --danger-color: #ef233c;
+    }
+    
+    body {
+      background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.9)), 
+                  url("https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=2232&auto=format&fit=crop") no-repeat center center fixed;
+      background-size: cover;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .admin-container {
+      width: 100%;
+      max-width: 1200px;
+      background-color: rgba(255,255,255,0.97);
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+      overflow: hidden;
+      backdrop-filter: blur(2px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .navbar-brand {
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .card {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      background-color: rgba(255,255,255,0.95);
+      overflow: hidden;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .card-header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      font-weight: 600;
+      border-radius: 10px 10px 0 0 !important;
+      padding: 1rem 1.5rem;
+      border-bottom: none;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border: none;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, var(--success-color), #2b9348);
+      border: none;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(56, 176, 0, 0.3);
+    }
+    
+    .table th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+      color: #495057;
+    }
+    
+    .action-btns .btn {
+      margin-right: 5px;
+      min-width: 80px;
+      transition: all 0.2s ease;
+    }
+    
+    .action-btns .btn:hover {
+      transform: translateY(-2px);
+    }
+    
+    .upload-icon {
+      font-size: 1.2rem;
+      margin-right: 8px;
+    }
+    
+    .model-count-badge {
+      background: linear-gradient(135deg, var(--accent-color), #4895ef);
+      font-size: 0.8rem;
+      margin-left: 8px;
+      font-weight: 600;
+    }
+    
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 0.25rem rgba(76, 201, 240, 0.25);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: #6c757d;
+      background-color: rgba(248, 249, 250, 0.5);
+      border-radius: 10px;
+      margin: 1rem;
+    }
+    
+    .empty-state i {
+      font-size: 3.5rem;
+      margin-bottom: 1.5rem;
+      color: #dee2e6;
+      opacity: 0.7;
+    }
+    
+    .file-input-label {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .file-input-label:hover {
+      background-color: #e9ecef;
+    }
+    
+    /* Animation for upload button */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .upload-btn {
+      animation: pulse 2s infinite;
+    }
+    
+    .upload-btn:hover {
+      animation: none;
+    }
+    
+    /* Glass morphism effect for navbar */
+    .navbar {
+      background: rgba(15, 23, 42, 0.8) !important;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="/">
+        <i class="fas fa-cube me-2"></i>
+        STL Model Manager
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="/adminpage">
+              <a class="nav-link" href="/admin_logs">
+                <i class="fas fa-clipboard-list me-1"></i> View Logs
+              </a>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="fas fa-home me-1"></i> Home
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/logout">
+              <i class="fas fa-sign-out-alt me-1"></i> Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container py-5">
+    <div class="admin-container mx-auto p-4 p-lg-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-dark">
+          <i class="fas fa-tachometer-alt text-primary me-2"></i> Model Dashboard
+        </h1>
+        <span class="badge model-count-badge rounded-pill px-3 py-2">
+          {{ models|length }} {{ 'model' if models|length == 1 else 'models' }}
+        </span>
+      </div>
+      
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="alert alert-dismissible fade show" role="alert" 
+               style="background-color: #e3f2fd; border-left: 4px solid var(--primary-color);">
+            {% for message in messages %}
+              <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-2" style="color: var(--primary-color);"></i>
+                <div>{{ message }}</div>
+              </div>
+            {% endfor %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endif %}
+      {% endwith %}
+      
+      <!-- Upload Card -->
+      <div class="card mb-5">
+        <div class="card-header d-flex align-items-center">
+          <i class="fas fa-cloud-upload-alt me-2"></i>
+          Upload New STL Model
+        </div>
+        <div class="card-body">
+          <form method="POST" action="/adminpage" enctype="multipart/form-data">
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label for="stl_file" class="form-label">STL File</label>
+                <div class="input-group">
+                  <label class="file-input-label w-100">
+                    <i class="fas fa-file-upload me-2 text-primary"></i>
+                    <span id="file-name">Choose a file...</span>
+                    <input type="file" name="stl_file" id="stl_file" class="d-none" accept=".stl" required>
+                  </label>
+                </div>
+                <div class="form-text text-muted mt-1">Supported format: .stl (max size: 10MB)</div>
+              </div>
+              <div class="col-md-4">
+                <label for="man_height" class="form-label">Height Percentage</label>
+                <div class="input-group">
+                  <input type="number" name="man_height" id="man_height" class="form-control" 
+                         placeholder="e.g. 75" min="1" max="100" required>
+                  <span class="input-group-text">%</span>
+                </div>
+              </div>
+              <div class="col-12 mt-3">
+                <button type="submit" class="btn btn-success px-4 py-2 upload-btn">
+                  <i class="fas fa-upload upload-icon"></i> Upload Model
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Models Table -->
+      <div class="card">
+        <div class="card-header d-flex align-items-center">
+          <i class="fas fa-database me-2"></i>
+          Current Models
+        </div>
+        <div class="card-body p-0">
+          {% if models %}
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width: 50%">Filename</th>
+                    <th style="width: 20%">Height</th>
+                    <th class="text-end" style="width: 30%">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for model in models %}
+                  <tr>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                          <i class="fas fa-cube text-primary"></i>
+                        </div>
+                        <div>
+                          <div class="fw-medium">{{ model[1] }}</div>
+                          <small class="text-muted">Uploaded: {{ model[3]|default('N/A') }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" role="progressbar" 
+                             
+                             aria-valuenow="{{ model[2] }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            </div>
+                      </div>
+                      <small class="text-muted">{{ model[2] }}% of max height</small>
+                    </td>
+                    <td class="action-btns text-end">
+                      <a href="{{ url_for('edit_model', model_id=model[0]) }}" 
+                         class="btn btn-sm btn-warning">
+                        <i class="fas fa-edit me-1"></i> Edit
+                      </a>
+                      <form action="{{ url_for('delete_model', model_id=model[0]) }}"
+                            method="POST"
+                            style="display:inline;">
+                        <button type="submit"
+                                class="btn btn-sm btn-danger"
+                                onclick="return confirm('Are you sure you want to delete this model?');">
+                          <i class="fas fa-trash-alt me-1"></i> Delete
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <i class="fas fa-box-open"></i>
+              <h5 class="mb-2">No Models Found</h5>
+              <p class="text-muted">Upload your first STL model to get started</p>
+              <button class="btn btn-primary mt-2" onclick="document.getElementById('stl_file').click()">
+                <i class="fas fa-plus me-1"></i> Add First Model
+              </button>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Custom Script -->
+  <script>
+    // Enhance file input display
+    document.getElementById('stl_file').addEventListener('change', function(e) {
+      const fileName = e.target.files[0] ? e.target.files[0].name : 'Choose a file...';
+      document.getElementById('file-name').textContent = fileName;
+      
+      // Add visual feedback
+      const label = this.parentElement;
+      if (fileName !== 'Choose a file...') {
+        label.style.backgroundColor = '#e8f4fd';
+        label.style.border = '1px solid #4cc9f0';
+      } else {
+        label.style.backgroundColor = '#f8f9fa';
+        label.style.border = '1px solid #ced4da';
+      }
+    });
+    
+    // Add animation to upload button when file is selected
+    document.getElementById('stl_file').addEventListener('change', function() {
+      if (this.files.length > 0) {
+        document.querySelector('.upload-btn').classList.add('animate__animated', 'animate__pulse');
+      } else {
+        document.querySelector('.upload-btn').classList.remove('animate__animated', 'animate__pulse');
+      }
+    });
+    
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  </script>
+</body>
+</html>
